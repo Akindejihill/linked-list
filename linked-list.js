@@ -43,7 +43,7 @@ class LinkedList {
       newNode.next = this.head;
       this.head.prev = newNode;
     } else {
-      this.tail = null;
+      this.tail = newNode;
     }
     this.head = newNode;
     this.length++
@@ -55,9 +55,15 @@ class LinkedList {
     if (this.length === 0){
       return -1;
     } else {
-      const output = this.tail;
-      this.tail = this.tail.prev;
+      const output = this.tail.val;
       this.length--;
+      //if there are no more elements, set the head and tail to null
+      if (this.length === 0){
+        this.tail = null;
+        this.head = null;
+      } else { //otherwise leave the head alone, and set the tail to the previous node
+        this.tail = this.tail.prev;
+      }
       return output;
     }
   }
@@ -68,9 +74,15 @@ class LinkedList {
     if (this.length === 0){
       return -1;
     } else {
-      const output = this.head;
-      this.head.next.prev = null; //remove 'prev' attribute from the second element/node
-      this.head = this.head.next; //move the head pointer to the second element
+      const output = this.head.val;
+      //if there is a second node...
+      if (this.head.next){ 
+        this.head.next.prev = null; //remove 'prev' attribute from the second element/node
+        this.head = this.head.next; //move the head pointer to the second element
+      } else { //otherwise set the head and tail to null
+        this.head = null;
+        this.tail = null;
+      }
       this.length--;
       return output;
     }
@@ -80,7 +92,7 @@ class LinkedList {
 
   _get(idx) {
     if (idx >= this.length || idx < 0) {
-      return -1;
+      return false;
     }
     const deltaAlpha = idx; //distance idx is from the first element
     const deltaOmega = this.length - 1 - idx; //distance idx is from the last element
@@ -124,23 +136,46 @@ class LinkedList {
     const newNode = new Node(val);
     const currentNode = this._get(idx);
   
-    //if the requested index doesn't exist return -1
+    //if the requested index doesn't exist create it and any preceeding missing nodes
+    //the values of preceeding missing nodes will be set to null
     if (!currentNode){
-      return -1;
-    }
-
-    if (currentNode.prev){
-      currentNode.prev.next = newNode; //set the "next" property of the previous node to newNode
-      newNode.prev = currentNode.prev; //set the "prev" property of the new node to the node before it
+      const numOfInserts = idx - (this.length -1);
+      let currentNode = this.tail;
+      //each loop appends a node to the end
+      for (let i = 1; i <= numOfInserts; i++){
+        //if this is the last loop, append the newNode instead of a fillerNode
+        if (i === numOfInserts){
+          if (currentNode){ 
+            currentNode.next = newNode;
+            newNode.prev = currentNode;
+          }
+          this.tail = newNode;
+        } else { //otherwise append a filler node
+          const fillerNode = new Node(null);
+          if (currentNode){ 
+            currentNode.next = fillerNode;
+            fillerNode.prev = currentNode;
+          }
+          currentNode = fillerNode;
+        }
+      }
     } else {
-      this.head = newNode;  //if there is no previous node, then set newNode to head
-    }
+    
+      if (currentNode.prev){
+        currentNode.prev.next = newNode; //set the "next" property of the previous node to newNode
+        newNode.prev = currentNode.prev; //set the "prev" property of the new node to the node before it
+      } 
 
-    //place current node after newNode
-    currentNode.prev = newNode; 
-    newNode.next = currentNode;
+      //place current node after newNode
+      currentNode.prev = newNode; 
+      newNode.next = currentNode;
+    }
 
     this.length++;
+    //if there is only one node set it as the head
+    if (this.length === 1){
+      this.head = newNode;
+    }
     return true;
   }
 
@@ -157,6 +192,10 @@ class LinkedList {
     //set the previous node's 'next' property to the following node
     if (prevNode) prevNode.next = nextNode;
     this.length--;
+    if (this.length === 0){
+      this.head = null;
+      this.tail = null;
+    }
     return val;
   }
 

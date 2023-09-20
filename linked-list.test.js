@@ -1,4 +1,4 @@
-const LinkedList = require("./linked-list");
+const {LinkedList} = require("./linked-list");
 
 describe("push", function() {
   it("appends node and increments length", function() {
